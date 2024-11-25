@@ -173,6 +173,29 @@ If the report is in TXT format, the report will be written in JSON format simila
 **The third case of the `if` condition tool:**  
 If a format different from the previous two cases is specified, an error message is printed stating that the format requested by the user is not supported.
      
+## Run tests and generate report:  
+```python
+def run(self):
+    print(f"Starting scan on {self.target_url}")
+    self.test_sql_injection()
+    self.test_xss()
+    self.test_directory_traversal()
+    self.generate_report()
+```
+`run` function has defined to run all tests and report generating. 
 
+## Main Code to run:
+```python
+if __name__ == "__main__":
+    target = input("Enter target URL (e.g., http://example.com): ")
+    report_format = input("Enter report format (json/txt): ").strip().lower()
+    scanner = VulnerabilityScanner(target, report_format=report_format)
+    scanner.run()
+```
+We want to run the file directly and not through another program, so we added an if condition as in the first line to achieve that.  
+After that, the user is asked to enter the link that is required to be tested, and then the user is asked what is the format of the required report with removing the extra spaces in the text entered by the user and converting it to lowercase letters to get rid of the problem of uppercase and lowercase letters.  
+We defined a new object called scanner to store the input from the user and then run the tests based on the contents of the scanner object.  
 
+# Test the Code:
+We tried the python code on the URL https://google-gruyere.appspot.com and chose the report format TXT, then we got the results in the file: vulnerability_report.txt
 
