@@ -199,3 +199,7 @@ We defined a new object called scanner to store the input from the user and then
 # Test the Code:
 We tried the python code on the URL https://google-gruyere.appspot.com and chose the report format TXT, then we got the results in the file: vulnerability_report.txt
 
+# About:  
+There's a lot of other vulnerabilities can be added to this tool, this could be a future development.   
+The main limitation of the tool is the limit and the simplicity of its structure. There a lot to add to this tool.   
+**I HOPE YOU LIKE THIS TOOL.**
