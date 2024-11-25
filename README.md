@@ -91,11 +91,87 @@ Initially, a text is printed indicating that the test has started.
 A list of payloads was defined to be used in `for` loop where a dictionary called params was created containing the parameters sent with the request.  
 Then using self.session.get the GET request is sent to the self.target_url link with the payload within params and wait for five seconds to reply.  
 After examining whether there is any word wrong in the received text stored in the response (the presence of the word "error" or "syntax"), the self.log_vulnerability vulnerability registration function will be called and pass the following details:  
-url = response.url link tested.
-parameter = "search" the name of the field targeted by the test.
-payload = payload that led to detection.
-vuln_type="SQL Injection "type of loophole.
-description="SQL error messages or unintended behavior detected." A description of the loophole.
+`url = response.url` the tested URL.  
+`parameter = "search"` the name of the field targeted by the test.  
+`payload = payload` that led to detection.  
+`vuln_type="SQL Injection"` type of vulnerability.  
+`description="SQL error messages or unintended behavior detected."` A description of the loophole.  
+
+If any error occurs during execution, `Except as e:` processes this error so that you store it in e and print the error message.  
+
+## XSS Testing Code:
+```python
+def test_xss(self):
+    print("\n[INFO] Testing for Cross-Site Scripting (XSS)...")
+    payloads = ["<script>alert('XSS')</script>", "<img src=x onerror=alert('XSS')>"]
+    for payload in payloads:
+        params = {"query": payload}
+        try:
+            response = self.session.get(self.target_url, params=params, timeout=5)
+            if payload in response.text:
+                self.log_vulnerability(
+                    url=response.url,
+                    parameter="query",
+                    payload=payload,
+                    vuln_type="Cross-Site Scripting",
+                    description="Payload echoed back without sanitization.",
+          )
+        except Exception as e:
+            print(f"[ERROR] XSS test failed: {e}")
+```
+In a similar way, this code adds the payload to the "query" parameter and injects it into the URL link and then checks whether the payload exists as in the text received from the response.text. If the payload appears, this means that the application has reintroduced the payload without filtering or revising, indicating an XSS vulnerability.  
+
+## Directory Traversal Test:
+```python
+def test_directory_traversal(self):
+    print("\n[INFO] Testing for Directory Traversal...")
+    payloads = ["../../etc/passwd", "../index.html"]
+    for payload in payloads:
+        params = {"file": payload}
+        try:
+            response = self.session.get(self.target_url, params=params, timeout=5)
+            if "root:x" in response.text or "<html>" in response.text:
+                self.log_vulnerability(
+                    url=response.url,
+                    parameter="file",
+                    payload=payload,
+                    vuln_type="Directory Traversal",
+                    description="Potential file read from the server.",
+                )
+        except Exception as e:
+            print(f"[ERROR] Directory Traversal test failed: {e}")
+```
+Also, in similar way, payload is being added to the parameter "file" to access to the sensitive paths. After receiving the reply, check whether there is a root: x within the text of the reply message, the vulnerability exists. Example: If we send a request using the payload:  
+http://example.com?file=../../etc/passwd  
+And the reply was contained: root:x:0:0:root:/root:/bin/bash  
+This means that the web application allows navigation between directories and access to sensitive files.  
+
+## Report Generating Code: 
+```python
+def generate_report(self):
+    if self.report_format == "json":
+        with open(self.output_file, "w") as f:
+            json.dump(self.vulnerabilities, f, indent=4)
+        print(f"\n[INFO] Report generated in JSON format: {self.output_file}")
+    elif self.report_format == "txt":
+        with open(self.output_file.replace(".json", ".txt"), "w") as f:
+            for vuln in self.vulnerabilities:
+                f.write(json.dumps(vuln, indent=4) + "\n\n")
+        print(f"\n[INFO] Report generated in TXT format: {self.output_file.replace('.json', '.txt')}")
+    else:
+        print("[ERROR] Unsupported report format.")
+```
+**Report generation function definition:** It generates the report in JSON or TXT format according to the user's choice.
+
+At first, the report type is checked using the if, elif, else conditional tool so that it covers the three possible cases, which are either a JSON report, a TXT report, or an error in the report format.
+
+**In the first case of the `if` conditional tool:**  
+A new file is opened for writing to it named `self.output_file`, which was defined at the beginning of the class as taking the default value `vulnerability_report.json` with specifying the writing mode using the `"w"` parameter and storing the file temporarily in `f` to be used within the body of `with` statement, after which the list of vulnerabilities `self.vulnerabilities` is taken and placed in a JSON file in a format specified by the `indent=4` parameter.  
+Finally, a text is printed indicating that the report was generated in JSON format and named `vulnerability_report.json`.  
+**The second case of the `if` condition tool:**  
+If the report is in TXT format, the report will be written in JSON format similar to the first case, and then converted to a TXT report using `self.output_file.replace(".json", ".txt")` .  
+**The third case of the `if` condition tool:**  
+If a format different from the previous two cases is specified, an error message is printed stating that the format requested by the user is not supported.
      
 
 
